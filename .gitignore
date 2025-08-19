@@ -1,0 +1,26 @@
+# Blender addon specific
+*.blend1
+*.blend2
+*.blend@
+*.blend~
+
+# Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Virtual environment
+venv/
+.env/
+
+# Logs and temporary files
+*.log
+*.tmp
+
+# Git specific
+.git/
