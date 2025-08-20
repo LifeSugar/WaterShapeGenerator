@@ -1,19 +1,6 @@
 import bpy
 from typing import Optional
 
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful, but
-# WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTIBILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-# General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
-
 bl_info = {
     "name": "Watershapegenerator",
     "author": "Xi Lin",
@@ -28,20 +15,12 @@ bl_info = {
 RENAME_MAP = {
     "Resample Length": "重新采样长度",
     "Progress": "进度",
-    "Droplet Min Speed": "水滴最小速度",
-    "Droplet Max Speed": "水滴最大速度",
-    "Droplet Min Size": "水滴最小尺寸",
-    "Droplet Max Size": "水滴最大尺寸",
-    "Droplet Distance": "液滴距离",
-    "Surface Noise": "表面噪声",
-    "Wave Speed": "波浪速度",
-    "Wave Frequency": "波浪频率",
-    "Wave Area": "波浪区域",
-    "Wave Amplitude": "波浪振幅",
 }
 
 TARGET_NODEGROUP_NAME = "Liquid With Interface"
 
+
+# Get the Geometry Nodes modifier from the object
 def get_node_modifier(obj: bpy.types.Object) -> Optional[bpy.types.NodesModifier]:
     if obj is None:
         return None
@@ -50,18 +29,55 @@ def get_node_modifier(obj: bpy.types.Object) -> Optional[bpy.types.NodesModifier
             if modifier.type == 'NODES' and modifier.node_group and modifier.node_group.name == TARGET_NODEGROUP_NAME:
                 return modifier
         return None
-    # If no specific node group name is provided, return the first nodes modifier found
     for modifier in obj.modifiers:
         if modifier.type == 'NODES' and modifier.node_group:
             return modifier
     return None
 
+# Iterate over the inputs of a Geometry Nodes node tree
 def iter_gn_inputs(ng: bpy.types.NodeTree):
     if ng is None:
         return
     for item in ng.interface.items_tree:
         if getattr(item, "in_out", None) == 'INPUT' and item.item_type == 'SOCKET':
             yield item
+
+
+def _apply_obj_prop_to_modifier(mod: bpy.types.NodesModifier, identifier: str, value):
+    """Attempt to apply value to modifier instance; fallback to node-group default.
+
+    Returns (applied_instance: bool, applied_asset: bool)
+    """
+    applied_instance = False
+    applied_asset = False
+    try:
+        key = f'wsg__{identifier}'
+        try:
+            mod[key] = value
+            applied_instance = True
+        except Exception:
+            applied_instance = False
+    except Exception:
+        applied_instance = False
+
+    if not applied_instance:
+        try:
+            ng = mod.node_group
+            if ng is not None:
+                for item in ng.interface.items_tree:
+                    if getattr(item, 'identifier', None) == identifier:
+                        if hasattr(item, 'default_value'):
+                            try:
+                                item.default_value = value
+                                applied_asset = True
+                            except Exception:
+                                applied_asset = False
+                        break
+        except Exception:
+            applied_asset = False
+
+    return applied_instance, applied_asset
+
 
 class GN_PT_CustomInspector(bpy.types.Panel):
     bl_label = "Geometry Nodes Inspector"
@@ -72,9 +88,8 @@ class GN_PT_CustomInspector(bpy.types.Panel):
 
     @classmethod
     def poll(cls, context):
-        obj = context.object
-        return get_node_modifier(obj) is not None
-    
+        return get_node_modifier(context.object) is not None
+
     def draw(self, context):
         layout = self.layout
         obj = context.object
@@ -84,41 +99,52 @@ class GN_PT_CustomInspector(bpy.types.Panel):
             return
 
         ng = mod.node_group
-        row = layout.row()
-        row.prop(mod, "name", text = "Modifier")
-        row = layout.row()
-        row.prop(ng, "name", text = "Node Group")
+        layout.prop(mod, "name", text="Modifier")
+        layout.prop(ng, "name", text="Node Group")
 
         box = layout.box()
         box.label(text="Inputs", icon='NODE_INPUT')
 
+        if obj is None:
+            box.label(text="No object selected.")
+            return
+
         for item in iter_gn_inputs(ng):
             display_name = RENAME_MAP.get(item.name, item.name)
             identifier = item.identifier
+            key = f'wsg__{identifier}'
 
-            slider = False
-            soft_min = None
-            soft_max = None
+            default = getattr(item, 'default_value', None)
+            if default is None:
+                default = 0
 
-            if hasattr(item, "min_value") and hasattr(item, "max_value"):
-                slider = True
-                soft_min = float(item.min_value)
-                soft_max = float(item.max_value)
+            # ensure id prop exists
+            try:
+                if key not in obj.keys():
+                    obj[key] = default
+            except Exception:
+                pass
 
             row = box.row()
-            prop_path = f'node_group.inputs["{identifier}"]'
-            row.prop(mod, prop_path, text=display_name, slider=slider)
+            try:
+                # bind to object idprop using bracket syntax
+                row.prop(obj, f'["{key}"]', text=display_name)
+            except Exception:
+                row.label(text=f"{display_name} (unsupported)")
+                continue
 
-        layout.separator()
-        help_box = layout.box()
-        help_box.label(text="Tips", icon='INFO')
-        col = help_box.column(align=True)
-        col.label(text="1. Select an object with a Geometry Nodes modifier.")
-        col.label(text="2. Adjust the inputs in the panel above.")
+            # apply to modifier instance
+            try:
+                val = obj.get(key)
+                inst, asset = _apply_obj_prop_to_modifier(mod, identifier, val)
+                if not inst and not asset:
+                    print(f"WSG warning: failed to apply '{identifier}' to modifier or asset")
+            except Exception as e:
+                print(f"WSG error applying '{identifier}': {e}")
+
 
 
 class GN_OT_RenameInterface(bpy.types.Operator):
-    """把当前 Node Group 的接口名字直接改成 RENAME_MAP（影响所有面板与资产）"""
     bl_idname = "gn.rename_interface_by_map"
     bl_label = "Apply RENAME_MAP to Interface"
     bl_options = {'UNDO'}
@@ -137,10 +163,10 @@ class GN_OT_RenameInterface(bpy.types.Operator):
         if changed == 0:
             self.report({'INFO'}, "No interface names matched RENAME_MAP.")
         else:
-            # 通常改名会立刻刷新；必要时可 tag 更新：
             ng.interface_update(context)
             self.report({'INFO'}, f"Renamed {changed} interface item(s).")
         return {'FINISHED'}
+
 
 class GN_PT_CustomInspectorFooter(bpy.types.Panel):
     bl_label = "Manage"
@@ -155,19 +181,24 @@ class GN_PT_CustomInspectorFooter(bpy.types.Panel):
         layout = self.layout
         layout.operator("gn.rename_interface_by_map", icon='OUTLINER_DATA_GP_LAYER')
 
+
 classes = (
     GN_PT_CustomInspector,
     GN_PT_CustomInspectorFooter,
     GN_OT_RenameInterface,
 )
 
+
 def register():
     for c in classes:
         bpy.utils.register_class(c)
+
 
 def unregister():
     for c in reversed(classes):
         bpy.utils.unregister_class(c)
 
+
 if __name__ == "__main__":
     register()
+                  
