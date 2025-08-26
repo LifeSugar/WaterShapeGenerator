@@ -81,7 +81,7 @@ class WATERGENERATOR_PT_GeoNodeProps(bpy.types.Panel):
                         row.prop(mod, f'["{key}"]', text="")
                         prop_count += 1
 
-                    elif typ in {"NodeSocketObject"}:
+                    elif typ in {"NodeSocketObject"}: 
                         row = box.row(align=True)
                         row.label(text=f"{display}（对象数据，无法在此编辑）")
                         row.prop(mod, f'["{key}"]', text=display)
