@@ -13,7 +13,9 @@
 
 
 import bpy
-from .includes import panels, operators
+import os
+from .includes import panels, operators, resource, properties
+
 
 bl_info = {
     "name": "水体生成器",
@@ -21,13 +23,29 @@ bl_info = {
     "category": "Object",
 }
 
+classes = [
+    properties.WaterShapeGeneratorProperties,
+    # panels.WATERGENERATOR_PT_GeoNodeProps,
+    panels.WATERGENERATOR_PT_MainPanel,
+    # operators.WATERGENERATOR_OT_DebugOperator,
+]
+
 def register():
-    panels.register()
-    operators.register()
+    resource.register_icon()
+    resource.register_previews()
+
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.Scene.water_shape_generator_props = bpy.props.PointerProperty(type=properties.WaterShapeGeneratorProperties)
 
 def unregister():
-    panels.unregister()
-    operators.unregister()
+    del bpy.types.Scene.water_shape_generator_props
+
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+    
+    resource.unregister_icon()
+    resource.unregister_previews()
 
 if __name__ == "__main__":
     register()

@@ -1,6 +1,8 @@
 import bpy
 from . import method
 
+
+
 class WATERGENERATOR_PT_GeoNodeProps(bpy.types.Panel):
     bl_label = "几何节点属性"
     bl_idname = "OBJECT_PT_geonode_props_cn"
@@ -112,10 +114,63 @@ class WATERGENERATOR_PT_GeoNodeProps(bpy.types.Panel):
             box.label(text=f"重拓扑: {mod.name}", icon='MOD_REMESH')
             box.prop(mod, "voxel_size", text="细分尺寸")
 
+class WATERGENERATOR_PT_MainPanel(bpy.types.Panel):
+    bl_label = "水体生成"
+    bl_idname = "OBJECT_PT_watergenerator_main_cn"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_category = '水体生成'
+
+    @classmethod
+    def poll(cls, context):
+        return True
+    
+    def draw(self, context):
+        from .resource import custom_icons
+
+        
+        
+        layout = self.layout
+
+        top_box = layout.box()
+        tile_row = top_box.row(align=True)
+
+        if "1" in custom_icons:
+            icon = custom_icons["1"].icon_id
+            tile_row.label(text = "生成水流和水花", icon_value=icon)
+        else:
+            tile_row.label(text = "生成水流和水花", icon='MOD_FLUIDSIM')
+
+        props = context.scene.water_shape_generator_props
+
+        preview_row = top_box.row(align=True)
+        from .resource import preview_collections
+         # 检查预览图集合是否已成功加载
+        if "main" in preview_collections:
+            pcoll = preview_collections["main"]
+            # 从属性中获取当前选中的预览图ID
+            selected_preview_name = props.preview_selector
+            
+            # --- 这里是必须添加的安全检查 ---
+            # 在使用 selected_preview_name 作为键之前，先检查它是否存在于 pcoll 中
+            if selected_preview_name in pcoll:
+                # 只有当键有效时，才绘制预览图
+                preview_row.template_icon(icon_value=pcoll[selected_preview_name].icon_id, scale=5.0)
+            else:
+                # 如果键无效（比如插件刚启动时），显示一个提示
+                preview_row.label(text="请选择一个预览图")
+                
+        else:
+            # 这个else是当 "main" 预览集不存在时触发
+            preview_row.label(text="没有可用的预览图")
+            
+        layout.prop(props, "preview_selector", expand=True) 
 
 
 def register():
-    bpy.utils.register_class(WATERGENERATOR_PT_GeoNodeProps)
+    # bpy.utils.register_class(WATERGENERATOR_PT_GeoNodeProps)
+    bpy.utils.register_class(WATERGENERATOR_PT_MainPanel)
 
 def unregister():
-    bpy.utils.unregister_class(WATERGENERATOR_PT_GeoNodeProps)
+    # bpy.utils.unregister_class(WATERGENERATOR_PT_GeoNodeProps)
+    bpy.utils.unregister_class(WATERGENERATOR_PT_MainPanel)
