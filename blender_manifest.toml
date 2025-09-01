@@ -2,69 +2,43 @@ schema_version = "1.0.0"
 
 id = "watershapegenerator"
 version = "1.0.0"
-name = "水体生成器属性显示"
-tagline = "在侧边栏显示几何节点属性的中文版本"
-maintainer = "Xi Lin"
+name = "水体生成器"
+tagline = "强大的水体和流体生成工具，支持多种预设和实时参数调节"
+maintainer = "Xi Lin <your-email@example.com>"
 type = "add-on"
 
-# Optional link to documentation, support, source files, etc
-# website = "https://extensions.blender.org/add-ons/my-example-package/"
+# 项目链接
+website = "https://github.com/LifeSugar/WaterShapeGenerator"
 
-# Optional list defined by Blender and server, see:
-# https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html
-tags = ["3D View", "Modeling"]
+# 支持的标签
+tags = ["3D View", "Modeling", "Geometry Nodes", "Animation", "Simulation"]
 
 blender_version_min = "4.2.0"
-# # Optional: Blender version that the extension does not support, earlier versions are supported.
-# # This can be omitted and defined later on the extensions platform if an issue is found.
-# blender_version_max = "5.1.0"
 
-# License conforming to https://spdx.org/licenses/ (use "SPDX: prefix)
-# https://docs.blender.org/manual/en/dev/advanced/extensions/licenses.html
+# 开源许可证
 license = [
-  "SPDX:GPL-2.0-or-later",
+  "SPDX:GPL-3.0-or-later",
 ]
-# Optional: required by some licenses.
-# copyright = [
-#   "2002-2024 Developer Name",
-#   "1998 Company Name",
-# ]
 
-# Optional list of supported platforms. If omitted, the extension will be available in all operating systems.
-# platforms = ["windows-x64", "macos-arm64", "linux-x64"]
-# Other supported platforms: "windows-arm64", "macos-x64"
+# 版权信息
+copyright = [
+  "2025 Xi Lin",
+]
 
-# Optional: bundle 3rd party Python modules.
-# https://docs.blender.org/manual/en/dev/advanced/extensions/python_wheels.html
-# wheels = [
-#   "./wheels/hexdump-3.3-py3-none-any.whl",
-#   "./wheels/jsmin-3.0.1-py3-none-any.whl",
-# ]
+# 支持的平台
+platforms = ["windows-x64", "macos-arm64", "linux-x64", "macos-x64", "windows-arm64"]
 
-# Optional: add-ons can list which resources they will require:
-# * files (for access of any filesystem operations)
-# * network (for internet access)
-# * clipboard (to read and/or write the system clipboard)
-# * camera (to capture photos and videos)
-# * microphone (to capture audio)
-#
-# If using network, remember to also check `bpy.app.online_access`
-# https://docs.blender.org/manual/en/dev/advanced/extensions/addons.html#internet-access
-#
-# For each permission it is important to also specify the reason why it is required.
-# Keep this a single short sentence without a period (.) at the end.
-# For longer explanations use the documentation or detail page.
-#
-# [permissions]
-# network = "Need to sync motion-capture data to server"
-# files = "Import/export FBX from/to disk"
-# clipboard = "Copy and paste bone transforms"
+# 权限说明
+[permissions]
+files = "需要读取水体预设文件和图标资源"
 
-# Optional: build settings.
-# https://docs.blender.org/manual/en/dev/advanced/extensions/command_line_arguments.html#command-line-args-extension-build
-# [build]
-# paths_exclude_pattern = [
-#   "__pycache__/",
-#   "/.git/",
-#   "/*.zip",
-# ]
+# 构建设置
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "/.git/",
+  "/*.zip",
+  "/debug_*.txt",
+  "/.vscode/",
+  "/node_modules/",
+]
