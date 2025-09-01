@@ -25,9 +25,12 @@ bl_info = {
 
 classes = [
     properties.WaterShapeGeneratorProperties,
-    # panels.WATERGENERATOR_PT_GeoNodeProps,
+    operators.WATERGENERATOR_OP_DEBUG,
+    operators.WATERGENERATOR_OP_PrintImageName,
+    operators.WATERGENERATOR_OP_SetPreview,
+    operators.WATERGENERATOR_OP_GenerateWater,
+    # panels.WATERGENERATOR_PT_GeoNodeProps,  # 不再注册，但保留类用于在主面板中调用
     panels.WATERGENERATOR_PT_MainPanel,
-    # operators.WATERGENERATOR_OT_DebugOperator,
 ]
 
 def register():

@@ -40,10 +40,28 @@ def register_previews():
     # 遍历目录中的所有文件 (已简化循环)
     for image_file in sorted(os.listdir(previews_dir)):
         if image_file.lower().endswith((".png", ".jpg", ".jpeg")):
+            # 获取不含扩展名的文件名
             name = os.path.splitext(image_file)[0]
-            # 加载图片
-            pcoll.load(name, os.path.join(previews_dir, image_file), 'IMAGE')
-            print(f"加载预览图: {name}")
+            
+            # 清理名称，移除或替换可能导致问题的字符
+            # 替换常见的问题字符
+            clean_name = name.replace(" ", "_")  # 空格替换为下划线
+            clean_name = clean_name.replace("-", "_")  # 连字符替换为下划线
+            
+            # 确保名称只包含安全字符（字母、数字、下划线）
+            import re
+            clean_name = re.sub(r'[^\w]', '_', clean_name)
+            
+            # 确保名称不以数字开头（Python标识符规则）
+            if clean_name and clean_name[0].isdigit():
+                clean_name = "img_" + clean_name
+            
+            # 加载图片，使用清理后的名称
+            try:
+                pcoll.load(clean_name, os.path.join(previews_dir, image_file), 'IMAGE')
+                print(f"加载预览图: {clean_name} (原文件: {image_file})")
+            except Exception as e:
+                print(f"加载预览图失败 {image_file}: {e}")
 
 def unregister_previews():
     for pcoll in preview_collections.values():

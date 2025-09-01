@@ -1,0 +1,83 @@
+name: Build and Release Extension
+
+on:
+  push:
+    tags:
+      - 'v*'  # 触发条件：推送版本标签时
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+    
+    - name: Update manifest version
+      run: |
+        sed -i 's/version = ".*"/version = "${{ steps.get_version.outputs.VERSION }}"/' blender_manifest.toml
+    
+    - name: Create extension package
+      run: |
+        # 创建扩展包目录
+        mkdir -p dist
+        
+        # 复制文件到临时目录
+        cp -r . temp_build/
+        cd temp_build
+        
+        # 删除不需要的文件
+        rm -rf .git .github __pycache__ .gitignore
+        find . -name "*.pyc" -delete
+        find . -name "__pycache__" -type d -exec rm -rf {} +
+        
+        # 创建 zip 包
+        zip -r ../dist/watershapegenerator-${{ steps.get_version.outputs.VERSION }}.zip .
+        
+        cd ..
+        rm -rf temp_build
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: WaterShapeGenerator v${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## 水体生成器 v${{ steps.get_version.outputs.VERSION }}
+          
+          ### 新功能
+          - 自动更新功能
+          - 改进的用户界面
+          - 更多水体预设
+          
+          ### 安装方法
+          1. 下载 `watershapegenerator-${{ steps.get_version.outputs.VERSION }}.zip`
+          2. 在 Blender 4.2+ 中打开 Preferences > Add-ons
+          3. 点击 Install，选择下载的 zip 文件
+          4. 启用插件
+          
+          ### 支持的 Blender 版本
+          - Blender 4.2.0 及以上版本
+        draft: false
+        prerelease: false
+    
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/watershapegenerator-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_name: watershapegenerator-${{ steps.get_version.outputs.VERSION }}.zip
+        asset_content_type: application/zip

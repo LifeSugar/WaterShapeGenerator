@@ -16,6 +16,40 @@ PROPERTY_NAME_MAP = {
     "Wave Area": "波浪区域",
     "Wave Amplitude": "波浪幅度",
     "Curve": "曲线",
+    
+    # 新增的几何节点属性
+    "Material": "材质",
+    "Jitter Speed": "抖动速度",
+    "Jitter Scale": "抖动比例",
+    "Jitter Amplitude": "抖动幅度",
+    "WaterFlow": "水流",
+    "Head-Tail Effect": "头尾效果",
+    "Density": "密度",
+    "Scale Min": "最小比例",
+    "Scale Max": "最大比例",
+    "Extrude Mesh": "挤出网格",
+    "Speed": "速度",
+    "Intensity": "强度",
+    "Seed": "种子",
+    "Splash1": "飞溅1",
+    "Splash2": "飞溅2",
+    
+    # 动画和细节属性
+    "Animation Speed": "动画速度",
+    "Width": "宽度",
+    "Width 2": "宽度2",
+    "Detail": "细节",
+    "Frequency": "频率",
+    
+    "Voxel Amount(Detail)": "体素数量(细节)",
+    "Level (Det...n Surface)": "级别(细节表面)",
+    
+    # 开关和范围属性
+    "Switch": "开关",
+    "Min": "最小值",
+    "Max": "最大值",
+    "Scale Amplitude": "比例幅度",
+    "Smooth": "平滑",
 }
 
 def cn_name(name: str) -> str:

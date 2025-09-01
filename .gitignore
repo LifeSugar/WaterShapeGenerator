@@ -21,7 +21,32 @@ venv/
 # Logs and temporary files
 *.log
 *.tmp
+debug_*.txt
 
-# Git specific
+# Development tools
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Version control
 .git/
-__pycache__/__init__.cpython-311.pyc
+.svn/
+.hg/
+
+# CI/CD and distribution
+*.zip
+*.tar.gz
+*.rar
+dist/
+build/
+temp_build/
+
+# Documentation
+docs/_build/
+site/
+
+# Testing
+test_*.py
+*_test.py
