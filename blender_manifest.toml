@@ -1,7 +1,7 @@
-schema_version = "1.0.0"
+schema_version = "1.0.1"
 
 id = "watershapegenerator"
-version = "1.0.0"
+version = "1.0.1"
 name = "水体生成器"
 tagline = "强大的水体和流体生成工具，支持多种预设和实时参数调节"
 maintainer = "Xi Lin <your-email@example.com>"
